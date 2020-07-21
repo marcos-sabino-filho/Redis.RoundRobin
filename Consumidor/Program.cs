@@ -23,7 +23,7 @@ namespace Consumidor
 			 * e não começar despejando as mensagens já existentes em apenas um consimidor
 			 * https://www.rabbitmq.com/consumer-prefetch.html
 			 */
-			channel.BasicQos(0, 1, false);
+			channel.BasicQos(0, 10, false);
 
 			var consumer = new EventingBasicConsumer(channel);
 			consumer.Received += (model, ea) =>
@@ -39,9 +39,12 @@ namespace Consumidor
 					 * PARA REMOVAR DA LISTA, APENAS QUANDO A REGRA DE NEGÓCIO ESTIVER OK
 					 */
 					channel.BasicAck(ea.DeliveryTag, false);
+					System.Threading.Thread.Sleep(1000);
 				}
 				catch (Exception)
 				{
+					// PUBLICAR EM UMA FILA DE ERRO PARA NAO REPROCESSAR
+
 					// VOLTA PRA LISTA SE HOUVER UM ERRO DURANTE O PROCESSAMENTO
 					channel.BasicNack(ea.DeliveryTag, false, true);
 				}

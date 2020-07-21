@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +27,18 @@ namespace Produtor
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddRouting(option => option.LowercaseUrls = true);
+
+			//COMPRESSÃO DE RESPOSTA
+			services.Configure<GzipCompressionProviderOptions>(options=>
+			{
+				options.Level = System.IO.Compression.CompressionLevel.Optimal;
+			});
+			services.AddResponseCompression(option=>
+			{
+				option.Providers.Add<GzipCompressionProvider>();
+			});
+
 			services.AddControllers();
 			services.AddSwaggerGen(c =>
 			{
@@ -40,6 +53,8 @@ namespace Produtor
 			{
 				app.UseDeveloperExceptionPage();
 			}
+
+			app.UseResponseCompression();
 
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
